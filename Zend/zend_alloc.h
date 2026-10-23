@@ -52,6 +52,14 @@ typedef struct _zend_leak_info {
 
 BEGIN_EXTERN_C()
 
+#if defined(__GNUC__) && __GNUC__ >= 3 && !defined(__INTEL_COMPILER) && !defined(DARWIN) && !defined(__hpux) && !defined(_AIX) && !defined(__osf__)
+ZEND_API void zend_mm_safe_error_ex(const char *format, ...) __attribute__ ((noreturn));
+ZEND_API void zend_out_of_memory(void) __attribute__ ((noreturn));
+#else
+ZEND_API void zend_mm_safe_error_ex(const char *format, ...);
+ZEND_API void zend_out_of_memory(void);
+#endif
+
 ZEND_API char *zend_strndup(const char *s, unsigned int length) ZEND_ATTRIBUTE_MALLOC;
 
 ZEND_API void *_emalloc(size_t size ZEND_FILE_LINE_DC ZEND_FILE_LINE_ORIG_DC) ZEND_ATTRIBUTE_MALLOC;
@@ -96,8 +104,7 @@ inline static void * __zend_malloc(size_t len)
 	if (tmp) {
 		return tmp;
 	}
-	fprintf(stderr, "Out of memory\n");
-	exit(1);
+	zend_out_of_memory();
 }
 
 inline static void * __zend_calloc(size_t nmemb, size_t len)
@@ -113,8 +120,7 @@ inline static void * __zend_realloc(void *p, size_t len)
 	if (p) {
 		return p;
 	}
-	fprintf(stderr, "Out of memory\n");
-	exit(1);
+	zend_out_of_memory();
 }
 
 

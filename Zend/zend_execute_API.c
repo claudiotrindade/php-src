@@ -331,8 +331,23 @@ void shutdown_executor(TSRMLS_D) /* {{{ */
 		if (EG(in_autoload)) {
 			zend_hash_destroy(EG(in_autoload));
 			FREE_HASHTABLE(EG(in_autoload));
+			EG(in_autoload) = NULL;
 		}
 	} zend_end_try();
+
+	/* may be used by zend_error before init_executor */
+	EG(user_error_handler) = NULL;
+	EG(user_exception_handler) = NULL;
+	memset(&EG(user_error_handlers_error_reporting), 0, sizeof(EG(user_error_handlers_error_reporting)));
+	memset(&EG(user_error_handlers), 0, sizeof(EG(user_error_handlers)));
+	memset(&EG(user_exception_handlers), 0, sizeof(EG(user_exception_handlers)));
+	memset(&EG(arg_types_stack), 0, sizeof(EG(arg_types_stack)));
+	EG(objects_store).object_buckets = NULL;
+	EG(objects_store).top = 1;
+	EG(objects_store).size = 0;
+	EG(objects_store).free_list_head = -1;
+	EG(error_handling) = EH_NORMAL;
+	EG(exception) = NULL;
 
 	zend_shutdown_fpu(TSRMLS_C);
 
